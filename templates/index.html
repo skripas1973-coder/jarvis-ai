@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Джарвис</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #0e1621; color: #ffffff; font-family: 'Segoe UI', sans-serif;
+            height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden;
+        }
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .auth-card {
+            background-color: #17212b; padding: 40px; border-radius: 15px;
+            width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .auth-card h2 { margin-top: 0; color: #5eb5f7; }
+        .auth-card input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px;
+            border: 1px solid #242f3d; background-color: #0e1621; color: white; font-size: 16px; outline: none;
+        }
+        .auth-card button {
+            width: 100%; padding: 12px; border-radius: 8px; border: none;
+            background-color: #3b82f6; color: white; font-size: 16px; cursor: pointer; font-weight: bold;
+        }
+        .auth-card button:hover { background-color: #2563eb; }
+        .link { color: #5eb5f7; cursor: pointer; margin-top: 15px; display: block; font-size: 14px; }
+        
+        #chat-screen { display: none; flex-direction: column; height: 100vh; }
+        header {
+            background-color: #17212b; padding: 15px 20px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid #242f3d;
+        }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        #logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        
+        #chat-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 75%; display: flex; flex-direction: column; }
+        .message.mine { align-self: flex-end; }
+        .message.bot { align-self: flex-start; }
+        .bubble { padding: 10px 15px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word; white-space: pre-wrap; }
+        .mine .bubble { background-color: #2b5278; border-bottom-right-radius: 4px; }
+        .bot .bubble { background-color: #182533; border-bottom-left-radius: 4px; }
+        
+        footer { background-color: #17212b; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #242f3d; }
+        footer input { flex-grow: 1; padding: 12px; border-radius: 20px; border: none; background-color: #242f3d; color: white; font-size: 16px; outline: none; }
+        footer button { width: 50px; height: 50px; border-radius: 50%; border: none; background-color: #3b82f6; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2>🤖 Джарвис</h2>
+            <p style="color: #7f91a4; margin-bottom: 20px;">Ваш личный ассистент</p>
+            <input type="text" id="username" placeholder="Имя пользователя">
+            <input type="password" id="password" placeholder="Пароль">
+            <button onclick="login()" id="main-btn">Войти</button>
+            <span class="link" onclick="toggleMode()" id="toggle-link">Нет аккаунта? Зарегистрироваться</span>
+        </div>
+    </div>
+
+    <div id="chat-screen">
+        <header>
+            <div class="user-info">
+                <div style="width:35px; height:35px; border-radius:50%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-weight:bold;">🤖</div>
+                <div>
+                    <div style="font-weight:bold;">Джарвис</div>
+                    <div style="font-size:12px; color:#22c55e;">● в сети</div>
+                </div>
+            </div>
+            <div>
+                <span id="display-username" style="margin-right:15px; font-weight:bold;"></span>
+                <button id="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </header>
+
+        <div id="chat-container"></div>
+
+        <footer>
+            <input type="text" id="message-input" placeholder="Напишите сообщение..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">➤</button>
+        </footer>
+    </div>
+
+    <script>
+        let isLoginMode = true;
+
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('main-btn').innerText = isLoginMode ? 'Войти' : 'Зарегистрироваться';
+            document.getElementById('toggle-link').innerText = isLoginMode ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти';
+        }
+
+        async function login() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            if (!user || !pass) return alert("Заполните все поля!");
+
+            const endpoint = isLoginMode ? '/api/login' : '/api/register';
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: user, password: pass}),
+                credentials: 'same-origin'
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                if (!isLoginMode) {
+                    alert("Регистрация успешна! Теперь войдите.");
+                    toggleMode();
+                } else {
+                    startChat(user);
+                }
+            } else {
+                alert(data.error || "Ошибка");
+            }
+        }
+
+        async function startChat(username) {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('display-username').innerText = username;
+            
+            // Загружаем историю
+            const res = await fetch('/api/history', { credentials: 'same-origin' });
+            if (res.ok) {
+                const history = await res.json();
+                const container = document.getElementById('chat-container');
+                container.innerHTML = ''; // Очищаем перед загрузкой
+                
+                if (history.length === 0) {
+                    addMessage("Привет! Я Джарвис. Напиши мне что-нибудь!", 'bot');
+                } else {
+                    history.forEach(msg => {
+                        addMessage(msg.content, msg.role === 'user' ? 'mine' : 'bot');
+                    });
+                }
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+            document.getElementById('chat-screen').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'flex';
+            document.getElementById('password').value = '';
+        }
+
+        function addMessage(text, sender) {
+            const container = document.getElementById('chat-container');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+            msgDiv.innerHTML = `<div class="bubble">${text}</div>`;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'mine');
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: text}),
+                    credentials: 'same-origin'
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage(data.response || data.error || "Ошибка сервера", 'bot');
+                }
+            } catch (e) {
+                addMessage("Ошибка соединения", 'bot');
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+    </script>
+</body>
+</html>
