@@ -158,6 +158,9 @@
         }
 
         async function sendMessage() {
+            const btn = document.querySelector('footer button');
+            btn.disabled = true;
+            btn.innerText = '...';
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!text) return;
@@ -181,6 +184,10 @@
                 }
             } catch (e) {
                 addMessage("Ошибка соединения", 'bot');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '➤';
+                input.focus();
             }
         }
 
