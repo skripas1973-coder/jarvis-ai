@@ -6,43 +6,21 @@
     <title>Джарвис</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            height: 100vh;
-            height: 100dvh;
-            background-color: #0e1621;
-            color: #ffffff;
-            font-family: 'Segoe UI', sans-serif;
-            overflow: hidden;
-        }
+        html, body { height: 100dvh; background-color: #0e1621; color: #ffffff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100dvh; }
-        .auth-card {
-            background-color: #17212b; padding: 40px; border-radius: 15px;
-            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
+        .auth-card { background-color: #17212b; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .auth-card h2 { margin-top: 0; color: #5eb5f7; }
-        .auth-card input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px;
-            border: 1px solid #242f3d; background-color: #0e1621; color: white; font-size: 16px; outline: none;
-        }
-        .auth-card button {
-            width: 100%; padding: 12px; border-radius: 8px; border: none;
-            background-color: #3b82f6; color: white; font-size: 16px; cursor: pointer; font-weight: bold;
-        }
+        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #242f3d; background-color: #0e1621; color: white; font-size: 16px; outline: none; }
+        .auth-card button { width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: #3b82f6; color: white; font-size: 16px; cursor: pointer; font-weight: bold; }
         .link { color: #5eb5f7; cursor: pointer; margin-top: 15px; display: block; font-size: 14px; }
         
         #chat-screen { display: none; flex-direction: column; height: 100dvh; width: 100%; }
-        header {
-            background-color: #17212b; padding: 15px 20px; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid #242f3d; flex-shrink: 0;
-        }
+        header { background-color: #17212b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242f3d; flex-shrink: 0; }
         .user-info { display: flex; align-items: center; gap: 10px; }
         
-        #toggle-sound-btn { 
-            background: #242f3d; border: 1px solid #4b5563; color: white; 
-            padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 16px; 
-        }
-        
-        #logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 10px; }
+        .btn-icon { background: #242f3d; border: 1px solid #4b5563; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        #admin-btn { display: none; background: #dc2626; border-color: #dc2626; }
+        #logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
         
         #chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { max-width: 85%; display: flex; flex-direction: column; }
@@ -52,27 +30,22 @@
         .mine .bubble { background-color: #2b5278; border-bottom-right-radius: 4px; }
         .bot .bubble { background-color: #182533; border-bottom-left-radius: 4px; }
         
-        footer { 
-            background-color: #17212b; padding: 10px 15px; display: flex; gap: 10px; 
-            border-top: 1px solid #242f3d; flex-shrink: 0; align-items: center;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-        }
+        footer { background-color: #17212b; padding: 10px 15px; display: flex; gap: 10px; border-top: 1px solid #242f3d; flex-shrink: 0; align-items: center; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
         footer input { flex-grow: 1; padding: 12px; border-radius: 20px; border: none; background-color: #242f3d; color: white; font-size: 16px; outline: none; }
-        
-        footer button { 
-            width: 45px; height: 45px; border-radius: 50%; border: none; 
-            color: white; font-size: 20px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
-        }
-        #btn-mic { background-color: #8b5cf6; transition: 0.3s; }
+        footer button { width: 45px; height: 45px; border-radius: 50%; border: none; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #btn-mic { background-color: #8b5cf6; }
         #btn-mic.listening { background-color: #ef4444; animation: pulse 1.5s infinite; }
         #btn-send { background-color: #3b82f6; }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        /* Модалка админа */
+        #admin-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .admin-content { background: #17212b; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+        .admin-content h3 { margin-bottom: 15px; color: #ef4444; text-align: center; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #242f3d; }
+        .user-row span { font-weight: bold; }
+        .btn-del { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .close-modal { width: 100%; background: #4b5563; color: white; border: none; padding: 10px; border-radius: 5px; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -97,7 +70,8 @@
                 </div>
             </div>
             <div>
-                <button id="toggle-sound-btn" onclick="toggleSound()" title="Включить/Выключить голос">🔊</button>
+                <button id="admin-btn" class="btn-icon" onclick="openAdminPanel()" title="Админ-панель">⚙️</button>
+                <button id="toggle-sound-btn" class="btn-icon" onclick="toggleSound()">🔊</button>
                 <button id="logout-btn" onclick="logout()">Выйти</button>
             </div>
         </header>
@@ -105,10 +79,19 @@
         <div id="chat-container"></div>
 
         <footer>
-            <button id="btn-mic" onclick="toggleMic()" title="Свободные руки">🎤</button>
+            <button id="btn-mic" onclick="toggleMic()">🎤</button>
             <input type="text" id="message-input" placeholder="Напишите сообщение..." onkeypress="handleKeyPress(event)">
             <button id="btn-send" onclick="sendMessage()">➤</button>
         </footer>
+    </div>
+
+    <!-- Админ Модалка -->
+    <div id="admin-modal">
+        <div class="admin-content">
+            <h3>Управление пользователями</h3>
+            <div id="users-list"></div>
+            <button class="close-modal" onclick="document.getElementById('admin-modal').style.display='none'">Закрыть</button>
+        </div>
     </div>
 
     <script>
@@ -117,126 +100,54 @@
         let isHandsFree = false; 
         let isBotSpeaking = false;
         let recognition = null;
-        let silenceTimer = null; // Таймер тишины
+        let silenceTimer = null;
 
-        // --- НАСТРОЙКА ГОЛОСА ---
         function speak(text) {
             return new Promise((resolve) => {
-                if (!isSoundOn || !('speechSynthesis' in window)) {
-                    resolve();
-                    return;
-                }
-                
+                if (!isSoundOn || !('speechSynthesis' in window)) { resolve(); return; }
                 window.speechSynthesis.cancel(); 
                 isBotSpeaking = true;
-
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'ru-RU'; 
-                utterance.rate = 1.05; 
-                utterance.pitch = 0.9; // Более естественный голос
-
+                utterance.lang = 'ru-RU'; utterance.rate = 1.05; utterance.pitch = 0.9;
                 const voices = window.speechSynthesis.getVoices();
-                const maleVoice = voices.find(v => v.lang.includes('ru') && v.name.toLowerCase().includes('yuri')) || 
-                                  voices.find(v => v.lang.includes('ru') && v.name.toLowerCase().includes('pavel')) ||
-                                  voices.find(v => v.lang.includes('ru'));
+                const maleVoice = voices.find(v => v.lang.includes('ru') && v.name.toLowerCase().includes('yuri')) || voices.find(v => v.lang.includes('ru'));
                 if (maleVoice) utterance.voice = maleVoice;
-
                 utterance.onend = () => {
                     isBotSpeaking = false;
-                    // Ждем 1.5 секунды после окончания речи, чтобы эхо утихло
                     if (isHandsFree && recognition) {
-                        silenceTimer = setTimeout(() => {
-                            try { recognition.start(); } catch(e) {}
-                        }, 1500);
+                        silenceTimer = setTimeout(() => { try { recognition.start(); } catch(e) {} }, 1500);
                     }
                     resolve();
                 };
-                
-                utterance.onerror = () => {
-                    isBotSpeaking = false;
-                    resolve();
-                }
-
+                utterance.onerror = () => { isBotSpeaking = false; resolve(); }
                 window.speechSynthesis.speak(utterance);
             });
         }
 
         function toggleSound() {
             isSoundOn = !isSoundOn;
-            const btn = document.getElementById('toggle-sound-btn');
-            btn.innerText = isSoundOn ? '🔊' : '🔇';
-            btn.style.opacity = isSoundOn ? '1' : '0.5';
+            document.getElementById('toggle-sound-btn').innerText = isSoundOn ? '🔊' : '🔇';
             if (!isSoundOn) window.speechSynthesis.cancel(); 
         }
 
-        // --- РАСПОЗНАВАНИЕ РЕЧИ ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
-            recognition.lang = 'ru-RU';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = function() {
-                clearTimeout(silenceTimer);
-                document.getElementById('btn-mic').classList.add('listening');
-                document.getElementById('message-input').placeholder = "Слушаю вас, Сэр...";
-            };
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('message-input').value = transcript;
-                
-                // Временно отключаем микрофон на время запроса
-                recognition.stop(); 
-                sendMessage(); 
-            };
-
-            recognition.onerror = function(event) {
-                console.error("Ошибка микрофона:", event.error);
-                if (event.error === 'not-allowed') {
-                    isHandsFree = false;
-                    updateMicUI();
-                }
-            };
-
-            recognition.onend = function() {
-                document.getElementById('message-input').placeholder = "Напишите сообщение...";
-                document.getElementById('btn-mic').classList.remove('listening');
-                // Если это была ошибка или ручная остановка — микрофон просто выключается.
-                // Автоматическое включение происходит внутри функции speak() после таймаута.
-            };
-        } else {
-            document.getElementById('btn-mic').style.display = 'none';
+            recognition.lang = 'ru-RU'; recognition.interimResults = false;
+            recognition.onstart = function() { clearTimeout(silenceTimer); document.getElementById('btn-mic').classList.add('listening'); };
+            recognition.onresult = function(event) { document.getElementById('message-input').value = event.results[0][0].transcript; recognition.stop(); sendMessage(); };
+            recognition.onend = function() { document.getElementById('btn-mic').classList.remove('listening'); };
         }
 
         function toggleMic() {
-            if (!recognition) return alert("Ваш браузер не поддерживает микрофон. Используйте Chrome.");
-
+            if (!recognition) return alert("Микрофон не поддерживается.");
             if (isHandsFree) {
-                isHandsFree = false;
-                clearTimeout(silenceTimer);
-                recognition.abort(); // Жестко останавливаем
-                updateMicUI();
+                isHandsFree = false; clearTimeout(silenceTimer); recognition.abort(); 
             } else {
-                isHandsFree = true;
-                window.speechSynthesis.cancel(); // Заглушаем Джарвиса
-                try { recognition.start(); } catch(e) {}
-                updateMicUI();
+                isHandsFree = true; window.speechSynthesis.cancel(); try { recognition.start(); } catch(e) {}
             }
         }
 
-        function updateMicUI() {
-            const btn = document.getElementById('btn-mic');
-            if (isHandsFree) {
-                btn.classList.add('listening');
-            } else {
-                btn.classList.remove('listening');
-            }
-        }
-
-        // --- ОСТАЛЬНАЯ ЛОГИКА ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('main-btn').innerText = isLoginMode ? 'Войти' : 'Зарегистрироваться';
@@ -250,54 +161,43 @@
 
             const endpoint = isLoginMode ? '/api/login' : '/api/register';
             const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: user, password: pass}),
-                credentials: 'same-origin'
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: user, password: pass}), credentials: 'same-origin'
             });
             
             const data = await res.json();
-            
             if (res.ok) {
                 if (!isLoginMode) {
-                    alert("Регистрация успешна! Теперь войдите.");
-                    toggleMode();
+                    alert("Регистрация успешна! Теперь войдите."); toggleMode();
                 } else {
-                    startChat(user);
+                    startChat(user, data.is_admin);
                 }
-            } else {
-                alert(data.error || "Ошибка");
-            }
+            } else { alert(data.error || "Ошибка"); }
         }
 
-        async function startChat(username) {
+        async function startChat(username, isAdmin) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('display-username').innerText = username;
             
+            if (isAdmin) document.getElementById('admin-btn').style.display = 'block';
+            else document.getElementById('admin-btn').style.display = 'none';
+
             const res = await fetch('/api/history', { credentials: 'same-origin' });
             if (res.ok) {
                 const history = await res.json();
                 const container = document.getElementById('chat-container');
                 container.innerHTML = ''; 
-                
                 if (history.length === 0) {
                     addMessage("Здравствуйте, Сэр. Джарвис на связи. Чем я могу вам помочь?", 'bot', false);
                 } else {
-                    history.forEach(msg => {
-                        addMessage(msg.content, msg.role === 'user' ? 'mine' : 'bot', false); 
-                    });
+                    history.forEach(msg => addMessage(msg.content, msg.role === 'user' ? 'mine' : 'bot', false));
                 }
             }
         }
 
         async function logout() {
             await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
-            document.getElementById('chat-screen').style.display = 'none';
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('password').value = '';
-            window.speechSynthesis.cancel();
-            if (isHandsFree) toggleMic();
+            location.reload(); 
         }
 
         function addMessage(text, sender, shouldSpeak = true) {
@@ -307,10 +207,7 @@
             msgDiv.innerHTML = `<div class="bubble">${text}</div>`;
             container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
-
-            if (sender === 'bot' && shouldSpeak) {
-                return speak(text); 
-            }
+            if (sender === 'bot' && shouldSpeak) return speak(text); 
             return Promise.resolve();
         }
 
@@ -321,44 +218,57 @@
 
             addMessage(text, 'mine', false);
             input.value = '';
-
             const btnSend = document.getElementById('btn-send');
-            btnSend.disabled = true;
-            btnSend.innerText = '...';
+            btnSend.disabled = true; btnSend.innerText = '...';
 
             try {
                 const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: text}),
-                    credentials: 'same-origin'
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: text}), credentials: 'same-origin'
                 });
-                
                 const data = await res.json();
-                if (res.ok) {
-                    await addMessage(data.response, 'bot', true);
-                } else {
-                    await addMessage(data.response || data.error || "Ошибка сервера", 'bot', false);
-                }
+                await addMessage(data.response, 'bot', true);
             } catch (e) {
                 await addMessage("Ошибка соединения", 'bot', false);
             } finally {
-                btnSend.disabled = false;
-                btnSend.innerText = '➤';
-                
-                // Если это был ручной ввод, возвращаем фокус
-                if (!isHandsFree) input.focus();
+                btnSend.disabled = false; btnSend.innerText = '➤';
             }
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
+        function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        // --- АДМИН ПАНЕЛЬ ---
+        async function openAdminPanel() {
+            document.getElementById('admin-modal').style.display = 'flex';
+            const listDiv = document.getElementById('users-list');
+            listDiv.innerHTML = 'Загрузка...';
+            
+            const res = await fetch('/api/admin/users', { credentials: 'same-origin' });
+            if (!res.ok) return listDiv.innerHTML = 'Ошибка доступа';
+            
+            const users = await res.json();
+            listDiv.innerHTML = '';
+            
+            users.forEach(u => {
+                const row = document.createElement('div');
+                row.className = 'user-row';
+                // Нельзя удалить самого себя
+                const btn = u === document.getElementById('username').value ? '<span style="color:#22c55e; font-size:12px;">(Вы)</span>' : `<button class="btn-del" onclick="deleteUser('${u}')">Удалить</button>`;
+                row.innerHTML = `<span>${u}</span> ${btn}`;
+                listDiv.appendChild(row);
+            });
         }
 
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-            };
+        async function deleteUser(username) {
+            if (!confirm(`Вы уверены, что хотите удалить пользователя ${username}? Все его сообщения будут стерты.`)) return;
+            
+            const res = await fetch('/api/admin/delete_user', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username: username }), credentials: 'same-origin'
+            });
+            
+            if (res.ok) openAdminPanel(); // Обновляем список
+            else alert("Ошибка при удалении");
         }
     </script>
 </body>
