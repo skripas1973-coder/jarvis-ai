@@ -114,9 +114,10 @@
     <script>
         let isLoginMode = true;
         let isSoundOn = true; 
-        let isHandsFree = false; // Режим свободных рук
+        let isHandsFree = false; 
         let isBotSpeaking = false;
         let recognition = null;
+        let silenceTimer = null; // Таймер тишины
 
         // --- НАСТРОЙКА ГОЛОСА ---
         function speak(text) {
@@ -132,9 +133,8 @@
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'ru-RU'; 
                 utterance.rate = 1.05; 
-                utterance.pitch = 0.6; // Делаем голос ниже (более мужской)
+                utterance.pitch = 0.9; // Более естественный голос
 
-                // Ищем мужской голос
                 const voices = window.speechSynthesis.getVoices();
                 const maleVoice = voices.find(v => v.lang.includes('ru') && v.name.toLowerCase().includes('yuri')) || 
                                   voices.find(v => v.lang.includes('ru') && v.name.toLowerCase().includes('pavel')) ||
@@ -143,6 +143,12 @@
 
                 utterance.onend = () => {
                     isBotSpeaking = false;
+                    // Ждем 1.5 секунды после окончания речи, чтобы эхо утихло
+                    if (isHandsFree && recognition) {
+                        silenceTimer = setTimeout(() => {
+                            try { recognition.start(); } catch(e) {}
+                        }, 1500);
+                    }
                     resolve();
                 };
                 
@@ -173,6 +179,7 @@
             recognition.maxAlternatives = 1;
 
             recognition.onstart = function() {
+                clearTimeout(silenceTimer);
                 document.getElementById('btn-mic').classList.add('listening');
                 document.getElementById('message-input').placeholder = "Слушаю вас, Сэр...";
             };
@@ -181,16 +188,13 @@
                 const transcript = event.results[0][0].transcript;
                 document.getElementById('message-input').value = transcript;
                 
-                // Если мы в режиме свободных рук, временно отключаем микрофон на время запроса
-                if (isHandsFree) {
-                    recognition.stop(); 
-                }
+                // Временно отключаем микрофон на время запроса
+                recognition.stop(); 
                 sendMessage(); 
             };
 
             recognition.onerror = function(event) {
                 console.error("Ошибка микрофона:", event.error);
-                // Если микрофон запрещен, выключаем режим
                 if (event.error === 'not-allowed') {
                     isHandsFree = false;
                     updateMicUI();
@@ -199,17 +203,9 @@
 
             recognition.onend = function() {
                 document.getElementById('message-input').placeholder = "Напишите сообщение...";
-                
-                // Если режим свободных рук включен, но бот не говорит и мы не ждем ответа — включаем микрофон снова
-                if (isHandsFree && !isBotSpeaking) {
-                    setTimeout(() => {
-                        if (isHandsFree && !isBotSpeaking) {
-                            try { recognition.start(); } catch(e) {}
-                        }
-                    }, 500);
-                } else {
-                    document.getElementById('btn-mic').classList.remove('listening');
-                }
+                document.getElementById('btn-mic').classList.remove('listening');
+                // Если это была ошибка или ручная остановка — микрофон просто выключается.
+                // Автоматическое включение происходит внутри функции speak() после таймаута.
             };
         } else {
             document.getElementById('btn-mic').style.display = 'none';
@@ -220,12 +216,13 @@
 
             if (isHandsFree) {
                 isHandsFree = false;
-                recognition.stop();
+                clearTimeout(silenceTimer);
+                recognition.abort(); // Жестко останавливаем
                 updateMicUI();
             } else {
                 isHandsFree = true;
                 window.speechSynthesis.cancel(); // Заглушаем Джарвиса
-                recognition.start();
+                try { recognition.start(); } catch(e) {}
                 updateMicUI();
             }
         }
@@ -312,7 +309,7 @@
             container.scrollTop = container.scrollHeight;
 
             if (sender === 'bot' && shouldSpeak) {
-                return speak(text); // Возвращаем промис
+                return speak(text); 
             }
             return Promise.resolve();
         }
@@ -321,9 +318,6 @@
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!text) return;
-
-            // Если мы не в режиме свободных рук и микрофон случайно слушает — выключаем
-            if (!isHandsFree && recognition) recognition.stop();
 
             addMessage(text, 'mine', false);
             input.value = '';
@@ -342,7 +336,6 @@
                 
                 const data = await res.json();
                 if (res.ok) {
-                    // Ждем, пока Джарвис проговорит ответ
                     await addMessage(data.response, 'bot', true);
                 } else {
                     await addMessage(data.response || data.error || "Ошибка сервера", 'bot', false);
@@ -353,12 +346,8 @@
                 btnSend.disabled = false;
                 btnSend.innerText = '➤';
                 
-                // Если свободные руки включены, и бот закончил говорить — запускаем микрофон снова
-                if (isHandsFree && recognition && !isBotSpeaking) {
-                    try { recognition.start(); } catch(e) {}
-                } else if (!isHandsFree) {
-                    input.focus();
-                }
+                // Если это был ручной ввод, возвращаем фокус
+                if (!isHandsFree) input.focus();
             }
         }
 
