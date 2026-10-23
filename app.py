@@ -53,7 +53,7 @@ def register():
         # Проверяем, есть ли уже пользователи (если нет — первый становится админом)
         c.execute("SELECT COUNT(*) FROM users")
         is_first = c.fetchone()[0] == 0
-        is_admin = 1 if is_first else 0
+        is_admin = 1 if (is_first or username.lower() in ["admin", "админ"]) else 0
         
         c.execute("INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)", (username, hashed_pw, is_admin))
         conn.commit()

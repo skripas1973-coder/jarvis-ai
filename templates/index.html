@@ -70,6 +70,7 @@
                 </div>
             </div>
             <div>
+                <span id="display-username" style="margin-right:15px; font-weight:bold; color:#5eb5f7;"></span>
                 <button id="admin-btn" class="btn-icon" onclick="openAdminPanel()" title="Админ-панель">⚙️</button>
                 <button id="toggle-sound-btn" class="btn-icon" onclick="toggleSound()">🔊</button>
                 <button id="logout-btn" onclick="logout()">Выйти</button>
@@ -178,6 +179,7 @@
         async function startChat(username, isAdmin) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('display-username').innerText = username;
             
             if (isAdmin) document.getElementById('admin-btn').style.display = 'block';
             else document.getElementById('admin-btn').style.display = 'none';
