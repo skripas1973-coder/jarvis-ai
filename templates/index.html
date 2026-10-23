@@ -2,18 +2,22 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Джарвис</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            background-color: #0e1621; color: #ffffff; font-family: 'Segoe UI', sans-serif;
-            height: 100dvh; margin: 0; display: flex; flex-direction: column; overflow: hidden;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100vh;
+            height: 100dvh;
+            background-color: #0e1621;
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
         }
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100dvh; }
         .auth-card {
             background-color: #17212b; padding: 40px; border-radius: 15px;
-            width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .auth-card h2 { margin-top: 0; color: #5eb5f7; }
         .auth-card input {
@@ -24,28 +28,52 @@
             width: 100%; padding: 12px; border-radius: 8px; border: none;
             background-color: #3b82f6; color: white; font-size: 16px; cursor: pointer; font-weight: bold;
         }
-        .auth-card button:hover { background-color: #2563eb; }
         .link { color: #5eb5f7; cursor: pointer; margin-top: 15px; display: block; font-size: 14px; }
         
-        #chat-screen { display: none; flex-direction: column; height: 100dvh; }
+        #chat-screen { display: none; flex-direction: column; height: 100dvh; width: 100%; }
         header {
             background-color: #17212b; padding: 15px 20px; display: flex; justify-content: space-between;
-            align-items: center; border-bottom: 1px solid #242f3d;
+            align-items: center; border-bottom: 1px solid #242f3d; flex-shrink: 0;
         }
         .user-info { display: flex; align-items: center; gap: 10px; }
-        #logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         
-        #chat-container { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .message { max-width: 75%; display: flex; flex-direction: column; }
+        /* Кнопка вкл/выкл звука */
+        #toggle-sound-btn { 
+            background: #242f3d; border: 1px solid #4b5563; color: white; 
+            padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 16px; 
+        }
+        
+        #logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 10px; }
+        
+        #chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 85%; display: flex; flex-direction: column; }
         .message.mine { align-self: flex-end; }
         .message.bot { align-self: flex-start; }
         .bubble { padding: 10px 15px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word; white-space: pre-wrap; }
         .mine .bubble { background-color: #2b5278; border-bottom-right-radius: 4px; }
         .bot .bubble { background-color: #182533; border-bottom-left-radius: 4px; }
         
-        footer { background-color: #17212b; padding: 15px; display: flex; gap: 10px; border-top: 1px solid #242f3d; }
+        footer { 
+            background-color: #17212b; padding: 10px 15px; display: flex; gap: 10px; 
+            border-top: 1px solid #242f3d; flex-shrink: 0; align-items: center;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        }
         footer input { flex-grow: 1; padding: 12px; border-radius: 20px; border: none; background-color: #242f3d; color: white; font-size: 16px; outline: none; }
-        footer button { width: 50px; height: 50px; border-radius: 50%; border: none; background-color: #3b82f6; color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        footer button { 
+            width: 45px; height: 45px; border-radius: 50%; border: none; 
+            color: white; font-size: 20px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
+        }
+        #btn-mic { background-color: #8b5cf6; }
+        #btn-mic.recording { background-color: #ef4444; animation: pulse 1.5s infinite; }
+        #btn-send { background-color: #3b82f6; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
     </style>
 </head>
 <body>
@@ -63,14 +91,14 @@
     <div id="chat-screen">
         <header>
             <div class="user-info">
-                <div style="width:35px; height:35px; border-radius:50%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-weight:bold;">🤖</div>
+                <div style="width:35px; height:35px; border-radius:50%; background:#3b82f6; display:flex; align-items: center; justify-content: center; font-weight:bold;">🤖</div>
                 <div>
                     <div style="font-weight:bold;">Джарвис</div>
                     <div style="font-size:12px; color:#22c55e;">● в сети</div>
                 </div>
             </div>
             <div>
-                <span id="display-username" style="margin-right:15px; font-weight:bold;"></span>
+                <button id="toggle-sound-btn" onclick="toggleSound()" title="Включить/Выключить голос">🔊</button>
                 <button id="logout-btn" onclick="logout()">Выйти</button>
             </div>
         </header>
@@ -78,14 +106,102 @@
         <div id="chat-container"></div>
 
         <footer>
+            <button id="btn-mic" onclick="toggleMic()" title="Сказать голосом">🎤</button>
             <input type="text" id="message-input" placeholder="Напишите сообщение..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()">➤</button>
+            <button id="btn-send" onclick="sendMessage()">➤</button>
         </footer>
     </div>
 
     <script>
         let isLoginMode = true;
+        let isSoundOn = true; // По умолчанию Джарвис говорит
+        let isListening = false;
 
+        // --- НАСТРОЙКА ГОЛОСА (TTS) ---
+        function speak(text) {
+            if (!isSoundOn || !('speechSynthesis' in window)) return;
+            
+            // Останавливаем предыдущую речь, если она была
+            window.speechSynthesis.cancel(); 
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ru-RU'; // Русский язык
+            utterance.rate = 1.0; // Скорость
+            utterance.pitch = 0.8; // Делаем голос чуть ниже (более мужской/дворецкий)
+
+            // Пытаемся найти мужской русский голос
+            const voices = window.speechSynthesis.getVoices();
+            const maleVoice = voices.find(v => v.lang.includes('ru') && v.name.includes('Yuri')) || 
+                              voices.find(v => v.lang.includes('ru') && v.name.includes('Pavel')) ||
+                              voices.find(v => v.lang.includes('ru'));
+            if (maleVoice) utterance.voice = maleVoice;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            const btn = document.getElementById('toggle-sound-btn');
+            btn.innerText = isSoundOn ? '🔊' : '🔇';
+            btn.style.opacity = isSoundOn ? '1' : '0.5';
+            if (!isSoundOn) window.speechSynthesis.cancel(); // Если выключили, прекращаем говорить
+        }
+
+        // --- РАСПОЗНАВАНИЕ РЕЧИ (STT) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ru-RU';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('btn-mic').classList.add('recording');
+                document.getElementById('message-input').placeholder = "Слушаю вас, Сэр...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('message-input').value = transcript;
+                sendMessage(); // Автоматически отправляем
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Ошибка микрофона:", event.error);
+                stopMicUI();
+            };
+
+            recognition.onend = function() {
+                stopMicUI();
+            };
+        } else {
+            document.getElementById('btn-mic').style.display = 'none'; // Если браузер не поддерживает
+            console.log("Ваш браузер не поддерживает распознавание речи.");
+        }
+
+        function toggleMic() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                if (recognition) {
+                    window.speechSynthesis.cancel(); // Заглушаем Джарвиса, чтобы он не слушал сам себя
+                    recognition.start();
+                } else {
+                    alert("Ваш браузер не поддерживает микрофон. Попробуйте Chrome.");
+                }
+            }
+        }
+
+        function stopMicUI() {
+            isListening = false;
+            document.getElementById('btn-mic').classList.remove('recording');
+            document.getElementById('message-input').placeholder = "Напишите сообщение...";
+        }
+
+        // --- ОСТАЛЬНАЯ ЛОГИКА ---
         function toggleMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('main-btn').innerText = isLoginMode ? 'Войти' : 'Зарегистрироваться';
@@ -124,18 +240,19 @@
             document.getElementById('chat-screen').style.display = 'flex';
             document.getElementById('display-username').innerText = username;
             
-            // Загружаем историю
             const res = await fetch('/api/history', { credentials: 'same-origin' });
             if (res.ok) {
                 const history = await res.json();
                 const container = document.getElementById('chat-container');
-                container.innerHTML = ''; // Очищаем перед загрузкой
+                container.innerHTML = ''; 
                 
                 if (history.length === 0) {
-                    addMessage("Привет! Я Джарвис. Напиши мне что-нибудь!", 'bot');
+                    const greeting = "Здравствуйте, Сэр. Джарвис на связи. Чем я могу вам помочь?";
+                    addMessage(greeting, 'bot', false); // false - не озвучивать при загрузке
                 } else {
                     history.forEach(msg => {
-                        addMessage(msg.content, msg.role === 'user' ? 'mine' : 'bot');
+                        // При загрузке истории не озвучиваем старые сообщения
+                        addMessage(msg.content, msg.role === 'user' ? 'mine' : 'bot', false); 
                     });
                 }
             }
@@ -146,27 +263,37 @@
             document.getElementById('chat-screen').style.display = 'none';
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('password').value = '';
+            window.speechSynthesis.cancel();
         }
 
-        function addMessage(text, sender) {
+        function addMessage(text, sender, shouldSpeak = true) {
             const container = document.getElementById('chat-container');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
             msgDiv.innerHTML = `<div class="bubble">${text}</div>`;
             container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
+
+            // Если это бот и звук включен, озвучиваем
+            if (sender === 'bot' && shouldSpeak) {
+                speak(text);
+            }
         }
 
         async function sendMessage() {
-            const btn = document.querySelector('footer button');
-            btn.disabled = true;
-            btn.innerText = '...';
             const input = document.getElementById('message-input');
             const text = input.value.trim();
             if (!text) return;
 
-            addMessage(text, 'mine');
+            // Если микрофон слушает, выключаем его
+            if (isListening && recognition) recognition.stop();
+
+            addMessage(text, 'mine', false);
             input.value = '';
+
+            const btnSend = document.getElementById('btn-send');
+            btnSend.disabled = true;
+            btnSend.innerText = '...';
 
             try {
                 const res = await fetch('/api/chat', {
@@ -178,21 +305,28 @@
                 
                 const data = await res.json();
                 if (res.ok) {
-                    addMessage(data.response, 'bot');
+                    addMessage(data.response, 'bot', true);
                 } else {
-                    addMessage(data.response || data.error || "Ошибка сервера", 'bot');
+                    addMessage(data.response || data.error || "Ошибка сервера", 'bot', false);
                 }
             } catch (e) {
-                addMessage("Ошибка соединения", 'bot');
+                addMessage("Ошибка соединения", 'bot', false);
             } finally {
-                btn.disabled = false;
-                btn.innerText = '➤';
-                input.focus();
+                btnSend.disabled = false;
+                btnSend.innerText = '➤';
+                if (!isListening) input.focus();
             }
         }
 
         function handleKeyPress(e) {
             if (e.key === 'Enter') sendMessage();
+        }
+
+        // Загружаем голоса при старте (нужно для Chrome)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
         }
     </script>
 </body>
