@@ -237,7 +237,12 @@
                     body: JSON.stringify({message: text, mode: mode}), credentials: 'same-origin'
                 });
                 const data = await res.json();
-                await addMessage(data.response, 'bot', true);
+                if (data.r01_response) {
+                    await addMessage("📊 **R-01 (Архитектор):**\n" + data.r01_response, 'bot', false);
+                    await addMessage("📚 **R-02 (Хронист):**\n" + data.r02_response, 'bot', true);
+                } else {
+                    await addMessage(data.response, 'bot', true);
+                }
             } catch (e) {
                 await addMessage("Ошибка соединения", 'bot', false);
             } finally {

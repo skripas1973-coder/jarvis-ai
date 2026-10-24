@@ -157,6 +157,9 @@ def chat():
             ai_response = res_r02.choices[0].message.content
         except Exception as e:
             return jsonify({'response': f"Ошибка R-02: {e}"})
+            
+        # Возвращаем оба ответа
+        return jsonify({'r01_response': r01_text, 'r02_response': ai_response})
 
     else:
         c.execute("SELECT role, content FROM messages WHERE username = ? ORDER BY id DESC LIMIT 10", (username,))
