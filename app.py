@@ -38,8 +38,8 @@ def init_db():
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, is_admin INTEGER DEFAULT 0)''')
     c.execute('''CREATE TABLE IF NOT EXISTS messages
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, role TEXT, content TEXT)''')
-    conn.commit()
-    c.close()
+    conn.commit() # ИСПРАВЛЕНО ЗДЕСЬ
+    conn.close()
 
 init_db()
 
@@ -126,7 +126,7 @@ def chat():
     
     data = request.json
     user_message = data.get('message', '')
-    mode = data.get('mode', 'jarvis') # Получаем режим
+    mode = data.get('mode', 'jarvis')
     username = session['username']
     
     conn = sqlite3.connect('users.db')
@@ -134,11 +134,9 @@ def chat():
     c.execute("INSERT INTO messages (username, role, content) VALUES (?, ?, ?)", (username, 'user', user_message))
     conn.commit()
 
-    # --- РЕЖИМ АНАЛИТИКА (R-01 + R-02) ---
     if mode == 'analyst':
         core_rules = load_core()
         
-        # R-01
         prompt_r01 = f"Ты — R-01 (Архитектор). Твои правила:\n{core_rules}\n\nЗадание: {user_message}\n\nПострой структуру, определи границы и неизвестные. Не ищи факты."
         try:
             res_r01 = giga.chat(prompt_r01)
@@ -146,7 +144,6 @@ def chat():
         except Exception as e:
             return jsonify({'response': f"Ошибка R-01: {e}"})
 
-        # R-02
         prompt_r02 = f"Ты — R-02 (Хронист). Твои правила:\n{core_rules}\n\nМодель от R-01:\n{r01_text}\n\nЗаполни модель фактами со статусами [УСТАНОВЛЕНО], [ГИПОТЕЗА], [НЕИЗВЕСТНО]."
         try:
             res_r02 = giga.chat(prompt_r02)
@@ -154,7 +151,6 @@ def chat():
         except Exception as e:
             return jsonify({'response': f"Ошибка R-02: {e}"})
 
-    # --- ОБЫЧНЫЙ РЕЖИМ (Джарвис) ---
     else:
         c.execute("SELECT role, content FROM messages WHERE username = ? ORDER BY id DESC LIMIT 10", (username,))
         recent = c.fetchall()
