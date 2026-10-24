@@ -34,11 +34,18 @@ def load_core():
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT, is_admin INTEGER DEFAULT 0)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS messages
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, role TEXT, content TEXT)''')
-    conn.commit() # ИСПРАВЛЕНО ЗДЕСЬ
+    c.execute("""CREATE TABLE IF NOT EXISTS users
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS messages
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, role TEXT, content TEXT)""")
+                 
+    # Автомиграция: если колонки is_admin нет, добавляем её
+    c.execute("PRAGMA table_info(users)")
+    columns = [col[1] for col in c.fetchall()]
+    if 'is_admin' not in columns:
+        c.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0")
+        
+    conn.commit()
     conn.close()
 
 init_db()
