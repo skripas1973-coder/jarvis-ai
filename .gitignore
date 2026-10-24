@@ -1,1 +1,4 @@
 venv/
+CORE_MINI.md
+*.db
+venv/
